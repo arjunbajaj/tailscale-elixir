@@ -23,7 +23,7 @@ defmodule Tailscale.ChangeServer do
   end
 
   def handle_continue(:refresh, %{refresh_interval: refresh_interval} = state) do
-    Logger.debug("Refreshing Tailscale Status")
+    Logger.info("Refreshing Tailscale Status")
 
     old_status = state.status_map
     new_status = Tailscale.Status.get!()

@@ -12,7 +12,7 @@ defmodule Tailscale.Cluster do
 
   def init(opts) do
     tags = opts[:tags]
-    match = opts[:match_tags] || :all
+    match = opts[:match_tags] || :any
 
     if opts[:start_distribution] != false do
       start_distribution(Tailscale.ChangeServer.get_status().self)
@@ -116,11 +116,17 @@ defmodule Tailscale.Cluster do
 
   def handle_info(:ensure_connected, state) do
     Process.send_after(self(), :ensure_connected, @ensure_interval)
-    {:noreply, ensure_connected(state)}
+    state = ensure_connected(state)
+    Logger.info("Tailscale Status: #{inspect(state.cluster_topology)}")
+    {:noreply, state}
+  end
+
+  def handle_call(:cluster_topology, state) do
+    {:reply, state.cluster_topology, state}
   end
 
   def terminate(reason, _state) do
-    Logger.debug("Tailscale.Cluster is terminating: #{inspect(reason)}.")
+    Logger.info("Tailscale.Cluster is terminating: #{inspect(reason)}.")
     Node.stop()
   end
 
@@ -141,6 +147,7 @@ defmodule Tailscale.Cluster do
       _ ->
         case Node.start(self.node, :longnames) do
           {:ok, _pid} ->
+            Logger.info("[Tailscale] Started Erlang distribution: `#{self.node}`.")
             :ok
 
           {:error, _} ->
@@ -153,7 +160,7 @@ defmodule Tailscale.Cluster do
     Tailscale.ChangeServer.get_status()
     |> Map.get(:peers)
     |> Enum.filter(&check_if_peer_matches_tags(&1, state))
-    |> Enum.filter(fn peer -> peer.online == true end)
+    |> Enum.filter(fn peer -> peer.online? == true end)
     |> Enum.map(fn peer ->
       case Node.connect(peer.node) do
         true -> {peer.id, peer}
@@ -171,7 +178,7 @@ defmodule Tailscale.Cluster do
     if state.disconnect_self_handler != nil do
       state.disconnect_self_handler.(reason)
     else
-      Logger.debug("Restarting Application: #{msg}")
+      Logger.info("Restarting Application: #{msg}")
       System.stop(1)
     end
 
@@ -182,6 +189,7 @@ defmodule Tailscale.Cluster do
     state =
       case Node.connect(peer.node) do
         true ->
+          Logger.info("Connected to node: #{peer.node}")
           update_in(state.cluster_topology, fn topology -> Map.put(topology, peer.id, peer) end)
 
         false ->
@@ -195,6 +203,7 @@ defmodule Tailscale.Cluster do
     state =
       case Node.disconnect(peer.node) do
         true ->
+          Logger.info("Disconnected from node: #{peer.node}")
           update_in(state.cluster_topology, fn topology -> Map.delete(topology, peer.id) end)
 
         false ->

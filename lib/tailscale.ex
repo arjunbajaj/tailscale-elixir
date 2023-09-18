@@ -5,4 +5,8 @@ defmodule Tailscale do
   def status do
     Tailscale.Local.Status.get!()
   end
+
+  def topology do
+    GenServer.call(Tailscale.Cluster, :cluster_topology)
+  end
 end
