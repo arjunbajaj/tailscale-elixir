@@ -121,7 +121,7 @@ defmodule Tailscale.Cluster do
     {:noreply, state}
   end
 
-  def handle_call(:cluster_topology, state) do
+  def handle_call(:cluster_topology, _from, state) do
     {:reply, state.cluster_topology, state}
   end
 

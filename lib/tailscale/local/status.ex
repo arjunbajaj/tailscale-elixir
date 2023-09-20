@@ -1,8 +1,24 @@
 defmodule Tailscale.Local.Status do
+  @moduledoc """
+  This module calls the `tailscale status --json` command, and parses the JSON to extract
+  the relevant information about the peers and the Tailnet.
+  """
+
   alias Tailscale.Local.Cmd
 
+  @doc """
+  Get the status of the local Tailscale node. It returns the struct `%Tailscale.Status{}`.
+  """
   def get!, do: parse_status(get_raw_map!())
+
+  @doc """
+  Get the raw status JSON, as a string.
+  """
   def get_raw!, do: Cmd.exec(~w[status --json], json: false)
+
+  @doc """
+  Get the status JSON parsed into a map, but not cleaned and parsed into structs.
+  """
   def get_raw_map!, do: Cmd.exec(~w[status --json], json: true)
 
   defp parse_status(status_json) do

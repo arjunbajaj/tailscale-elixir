@@ -1,4 +1,5 @@
 defmodule Tailscale.Exceptions do
+  @moduledoc false
   defmodule TailscaleNotRunning do
     @msg "Tailscale is not running on the host."
     defexception message: @msg

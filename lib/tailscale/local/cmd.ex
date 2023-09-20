@@ -1,6 +1,22 @@
 defmodule Tailscale.Local.Cmd do
+  @moduledoc """
+  Execute a command on the local Tailscale CLI.
+
+  The Tailscale CLI should be running and active.
+
+  On macOS, the Tailscale CLI is located inside the Tailscale.app bundle.
+  On Linux, the Tailscale CLI is located by finding it in the $PATH.
+  """
+
   alias Tailscale.Exceptions.{TailscaleCLIError, TailscaleNotFound, TailscaleNotRunning}
 
+  @doc """
+  Execute a Tailscale CLI command.
+
+  This function will raise an exception if the Tailscale CLI command fails.
+  It also can optionally decode the output as JSON (helpful for commands that return JSON output).
+  However, if it fails to decode JSON, it will raise.
+  """
   def exec(args, opts \\ [])
 
   def exec(args, opts) when is_binary(args) do
@@ -23,6 +39,8 @@ defmodule Tailscale.Local.Cmd do
     end
   end
 
+  # The executable on Mac is inside the Tailscale.app directory.
+  # On Linux, searching the $PATH works.
   defp find_tailscale_executable do
     executable =
       case :os.type() do
