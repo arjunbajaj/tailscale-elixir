@@ -43,7 +43,7 @@ defmodule Tailscale.MixProject do
 
   defp package do
     [
-      files: ~w(lib .formatter.exs mix.exs readme.md license.md changelog.md),
+      files: ~w(lib .formatter.exs mix.exs readme.md license.md),
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/arjunbajaj/tailscale-elixir"}
     ]

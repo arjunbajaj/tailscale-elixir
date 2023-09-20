@@ -69,7 +69,7 @@ defmodule Tailscale.ChangeServer do
 
   def subscribe(target), do: subscribe(target, :all)
 
-  @spec subscribe(Event.target(), Event.events()) :: :ok
+  @spec subscribe(Event.targets(), Event.events()) :: :ok
   def subscribe(target, event) when target in [:self, :peer, :tailnet, :user] do
     GenServer.call(__MODULE__, {:subscribe, target, event})
   end
